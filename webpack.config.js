@@ -2,7 +2,9 @@ const Webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin'); // 清理文件夹
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin'); // 从 js 中提出 css
+const PurifyCssWebpack = require('purifycss-webpack'); // 自动消除冗余的css代码
+const glob = require('glob'); // glob扫描路径
 
 function resolve(dir) {
   return path.join(__dirname, '..', dir);
@@ -36,10 +38,18 @@ module.exports = {
         // ],
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: 'css-loader',
+          use: [
+            { loader: 'css-loader' },
+            { loader: 'postcss-loader' }, //利用postcss-loader自动添加css前缀
+          ],
           publicPath:'../' //解决css背景图的路径问题  css 文件和 images 的公共目录
           // publicPath:'../../' //解决css背景图的路径问题
         }),
+      },
+      {
+        test: /\.(js|jsx)$/,
+        use: ['babel-loader'],
+        exclude: /node_modules/,
       },
       {
         test: /\.(jpg|png|gif$)/,
@@ -81,7 +91,7 @@ module.exports = {
       minify:{
         collapseWhitespace: false //折叠空白区域 也就是压缩代码
       },
-      template: './index.html', // 模板地址
+      template: './index2.html', // 模板地址
       title: 'My App', // 传入末班的参数
       // filename: './build/home1.html', // 输入文件的名称和地址, 基于 /dist 的地址
       publicPath: '/kol/app', // 传入额外的参数, 这里是一个路径
@@ -94,12 +104,25 @@ module.exports = {
       minify: {
         collapseWhitespace: false,
       },
-      template: './index2.html',
+      template: './index.html',
       // filename: './build/home2.html',
       filename: 'index.html',
     }),
     // css 提取: 都提到dist目录下的css目录中,文件名是index.css里面
     new ExtractTextPlugin('css/index.css'),
+    // 消除冗余代码, 必须在 extract-text-plugin 后面
+    new PurifyCssWebpack({
+      // 首先保证找路径不是异步的,所以这里用同步的方法
+      // path.join()也是path里面的方法,主要用来合并路径的
+      // 'src/*.html' 表示扫描每个html的css
+      paths: glob.sync(path.join(__dirname, 'src/*.html')),
+      // minimize: true,
+      purifyOptions: {
+        whitelist: [ '*daterangepicker*' ], // 白名单
+        info: true,
+        min: true,
+      },
+    })
   ],
   // webpack 静态服务器;
   devServer: {

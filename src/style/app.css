@@ -3,4 +3,5 @@
   height: 500px;
   /* background-color: blue; */
   background-image: url(../assets/images/test1.jpg);
+  border-radius: 5px;
 }
