@@ -1,23 +1,37 @@
 import React, { Component } from 'react';
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 
-export default class App extends Component {
-  renderList = (item, i) =>{
-    return (
-      <li key={i}>item:  {item}</li>
-    )
-  }
+import Home from './Home';
+
+const Login = () => {
+  const name = 'xiaotao';
+  return (
+    <div>
+      <input value={name} />
+    </div>  
+  )
+}
+class App extends Component {
 
   render() {
+    const loggedIn = false;
     const list = [11, 22, 33, 44, 55, 66, 77];
     return (
       <div className="">
-        <h3>App Test</h3>
-        <div className="app-content">
-          <ul className="">
-            {list.map(this.renderList)}
-          </ul>
-        </div>
+        <h6>测试路由</h6>
+        <Router>
+          <Switch>
+            <Route path="/" render={() => (
+              loggedIn
+              ? <Redirect to="/home" />
+              : <Login />
+            )} />
+            <Route path="/home" component={Home} />
+          </Switch>
+        </Router>
       </div>
     )
   }
 }
+
+export default App;
